@@ -1,0 +1,16 @@
+# Arduino build output
+build/
+*.elf
+*.bin
+*.hex
+*.map
+
+# Secrets: never commit Wi-Fi passwords
+secrets.h
+*.secret
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprout — Smart Plant Watering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Design tokens: a fern-night greenhouse log */
+  :root {
+    --night:  #0F1D17;   /* page */
+    --bed:    #16291F;   /* raised soil surface */
+    --ink:    #EAF0E6;   /* primary text */
+    --dim:    #8FA596;   /* secondary text */
+    --moss:   #B5E66A;   /* the one bright accent: live, growing */
+    --water:  #6FD3E6;   /* moisture */
+    --clay:   #E9A46B;   /* warnings */
+    --hair:   rgba(234, 240, 230, 0.12);
+    --serif:  "Fraunces", "Georgia", serif;
+    --sans:   "Figtree", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--night); color: var(--ink); font-family: var(--sans); }
+  body { min-height: 100vh; line-height: 1.6; }
+  :focus-visible { outline: 2px solid var(--moss); outline-offset: 4px; border-radius: 4px; }
+
+  .page { max-width: 1040px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* Masthead */
+  header { display: flex; align-items: baseline; justify-content: space-between;
+           gap: 16px; flex-wrap: wrap; padding-bottom: 28px; border-bottom: 1px solid var(--hair); }
+  .wordmark { font-family: var(--serif); font-size: 2.1rem; font-weight: 600; letter-spacing: -0.02em; }
+  .wordmark em { font-style: italic; font-weight: 300; color: var(--moss); }
+  .status { color: var(--dim); font-size: 0.95rem; }
+  .status b { color: var(--moss); font-weight: 600; }
+
+  /* Hero: a water column that rises with the soil */
+  .hero { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 56px;
+          align-items: center; padding: 56px 0; border-bottom: 1px solid var(--hair); }
+  .tube { position: relative; width: 180px; height: 300px; margin: 0 auto;
+          border: 2px solid var(--hair); border-radius: 90px 90px 28px 28px; overflow: hidden;
+          background: linear-gradient(180deg, transparent, rgba(111,211,230,0.04)); }
+  .water { position: absolute; left: 0; right: 0; bottom: 0; height: 0%;
+           background: linear-gradient(180deg, var(--water), #3A9FB8);
+           transition: height 1.4s cubic-bezier(.2,.8,.2,1); }
+  .water::before { content: ""; position: absolute; top: -10px; left: -10%; width: 120%; height: 20px;
+           background: radial-gradient(ellipse at 50% 100%, var(--water) 55%, transparent 60%);
+           animation: wave 3.2s ease-in-out infinite; }
+  @keyframes wave { 50% { transform: translateX(-8px); } }
+  .reading { font-family: var(--serif); font-size: clamp(4.5rem, 10vw, 7rem); font-weight: 300;
+             line-height: 0.9; letter-spacing: -0.04em; }
+  .reading sup { font-size: 0.35em; vertical-align: top; margin-left: 4px; color: var(--dim); }
+  .verdict { font-family: var(--serif); font-size: 1.6rem; font-style: italic; margin: 12px 0 20px; }
+  .meta { display: flex; gap: 40px; flex-wrap: wrap; color: var(--dim); }
+  .meta strong { display: block; font-family: var(--serif); font-size: 1.6rem; color: var(--ink); font-weight: 300; }
+
+  /* Sections are separated by space and hairlines, not boxes */
+  section { padding: 48px 0; border-bottom: 1px solid var(--hair); }
+  section:last-of-type { border-bottom: 0; }
+  h2 { font-family: var(--serif); font-weight: 300; font-size: 1.8rem; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .lede { color: var(--dim); max-width: 60ch; margin-bottom: 28px; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  @media (max-width: 760px) { .split, .hero { grid-template-columns: 1fr; gap: 32px; } }
+
+  /* Trend */
+  .trend { width: 100%; height: 180px; display: block; }
+  .trend .grid-line { stroke: var(--hair); stroke-width: 1; }
+  .trend .line { fill: none; stroke: var(--moss); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+  .trend .area { fill: url(#fade); }
+  .axis { display: flex; justify-content: space-between; color: var(--dim); font-size: 0.85rem; margin-top: 8px; }
+
+  /* Controls */
+  .control { display: flex; align-items: center; justify-content: space-between; gap: 20px;
+             padding: 18px 0; border-bottom: 1px solid var(--hair); }
+  .control:last-child { border-bottom: 0; }
+  .control p { color: var(--dim); font-size: 0.95rem; }
+  .control p strong { display: block; color: var(--ink); font-weight: 600; font-size: 1.05rem; }
+
+  .switch { appearance: none; width: 64px; height: 34px; border-radius: 34px; background: var(--bed);
+            border: 1px solid var(--hair); position: relative; cursor: pointer; transition: background .3s; flex-shrink: 0; }
+  .switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px;
+            border-radius: 50%; background: var(--dim); transition: transform .3s, background .3s; }
+  .switch:checked { background: var(--moss); border-color: var(--moss); }
+  .switch:checked::after { transform: translateX(30px); background: var(--night); }
+
+  input[type="range"] { width: 100%; max-width: 220px; accent-color: var(--water); cursor: pointer; }
+  .threshold-value { font-family: var(--serif); font-size: 1.6rem; font-weight: 300; min-width: 3ch; text-align: right; }
+
+  /* Event log */
+  ol.log { list-style: none; }
+  ol.log li { display: grid; grid-template-columns: 90px 1fr; gap: 16px; padding: 12px 0;
+              border-bottom: 1px solid var(--hair); }
+  ol.log li:last-child { border-bottom: 0; }
+  ol.log time { color: var(--dim); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  ol.log span.water-event { color: var(--water); }
+
+  .demo-note { margin-top: 36px; color: var(--dim); font-size: 0.9rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="wordmark">Sprout<em>.</em></div>
+    <div class="status" id="connection">Connecting to <b>plant-controller</b>…</div>
+  </header>
+
+  <div class="hero">
+    <div class="tube" aria-hidden="true"><div class="water" id="water"></div></div>
+    <div>
+      <div class="reading" id="soil">--<sup>%</sup></div>
+      <p class="verdict" id="verdict">Waiting for the first reading.</p>
+      <div class="meta">
+        <div><strong id="temp">--°</strong>Air temperature</div>
+        <div><strong id="humid">--%</strong>Air humidity</div>
+        <div><strong id="threshold">--%</strong>Water below</div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Last hour</h2>
+    <p class="lede">Soil moisture, sampled every few seconds. Each dip that ends in a sharp rise is a watering.</p>
+    <svg class="trend" id="trend" viewBox="0 0 800 180" preserveAspectRatio="none" role="img" aria-label="Soil moisture over time">
+      <defs>
+        <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#B5E66A" stop-opacity="0.22"/>
+          <stop offset="1" stop-color="#B5E66A" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line class="grid-line" x1="0" x2="800" y1="45" y2="45"/>
+      <line class="grid-line" x1="0" x2="800" y1="90" y2="90"/>
+      <line class="grid-line" x1="0" x2="800" y1="135" y2="135"/>
+      <path class="area" id="area" d=""/>
+      <polyline class="line" id="line" points=""/>
+    </svg>
+    <div class="axis"><span>60 min ago</span><span>now</span></div>
+  </section>
+
+  <section class="split">
+    <div>
+      <h2>Controls</h2>
+      <p class="lede">Water by hand, or set the level where Sprout takes over.</p>
+      <div class="control">
+        <p><strong>Water now</strong>Runs the pump until you switch it off.</p>
+        <input type="checkbox" class="switch" id="pump" aria-label="Water now">
+      </div>
+      <div class="control">
+        <p><strong>Auto-water threshold</strong>Water when soil drops below this.</p>
+        <div style="display:flex;align-items:center;gap:14px">
+          <input type="range" id="thresh" min="0" max="100" value="35" aria-label="Auto-water threshold">
+          <span class="threshold-value" id="threshVal">35</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2>Journal</h2>
+      <p class="lede">Everything the controller has done since it woke up.</p>
+      <ol class="log" id="log"></ol>
+    </div>
+  </section>
+
+  <p class="demo-note" id="demoNote"></p>
+</div>
+
+<script>
+  // Point this at your ESP32's IP address (shown in the Arduino serial monitor)
+  const DEVICE = "http://192.168.1.50";
+  const POLL_MS = 2000;
+  const HISTORY = 60;          // readings kept for the trend line
+
+  const $ = (id) => document.getElementById(id);
+  const history = [];
+  const journal = [];
+  let demo = false;
+  let lastEvent = "";
+  let demoSoil = 52, demoPump = false, demoThreshold = 35;
+
+  function verdictFor(soil, threshold) {
+    if (soil < threshold)       return "Thirsty. Sprout will water soon.";
+    if (soil < threshold + 15)  return "Fine for now, but keep an eye on it.";
+    return "Comfortably moist. Nothing to do.";
+  }
+
+  function render(d) {
+    $("soil").innerHTML = Math.round(d.soil) + "<sup>%</sup>";
+    $("water").style.height = Math.max(0, Math.min(100, d.soil)) + "%";
+    $("verdict").textContent = verdictFor(d.soil, d.threshold);
+    $("temp").textContent = (d.temperature ?? "--") + "°";
+    $("humid").textContent = (d.humidity ?? "--") + "%";
+    $("threshold").textContent = d.threshold + "%";
+    if (document.activeElement !== $("thresh")) {
+      $("thresh").value = d.threshold;
+      $("threshVal").textContent = d.threshold;
+    }
+    if (document.activeElement !== $("pump")) $("pump").checked = d.pump;
+
+    history.push(d.soil);
+    if (history.length > HISTORY) history.shift();
+    drawTrend();
+
+    if (d.lastEvent && d.lastEvent !== lastEvent) {
+      lastEvent = d.lastEvent;
+      addJournal(d.lastEvent);
+    }
+  }
+
+  function drawTrend() {
+    const w = 800, h = 180, pad = 8;
+    const pts = history.map((v, i) => {
+      const x = (i / (HISTORY - 1)) * w;
+      const y = pad + (1 - v / 100) * (h - pad * 2);
+      return [x, y];
+    });
+    if (!pts.length) return;
+    $("line").setAttribute("points", pts.map(p => p.join(",")).join(" "));
+    const first = pts[0], last = pts[pts.length - 1];
+    $("area").setAttribute("d",
+      `M${first[0]},${h} L${pts.map(p => p.join(",")).join(" L")} L${last[0]},${h} Z`);
+  }
+
+  function addJournal(text) {
+    const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    journal.unshift({ t, text });
+    if (journal.length > 12) journal.pop();
+    $("log").innerHTML = journal.map(e =>
+      `<li><time>${e.t}</time><span class="${/water/i.test(e.text) ? "water-event" : ""}">${e.text}</span></li>`
+    ).join("");
+  }
+
+  async function api(path, options) {
+    const res = await fetch(DEVICE + path, { ...options, signal: AbortSignal.timeout(2000) });
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  }
+
+  // Demo mode: a believable simulation so the template works before the hardware is ready
+  function simulate() {
+    demoSoil += demoPump ? 3 : -0.4;
+    if (demoSoil < demoThreshold && !demoPump) demoPump = true;
+    if (demoSoil >= 85) demoPump = false;
+    demoSoil = Math.max(5, Math.min(98, demoSoil));
+    return {
+      soil: demoSoil, temperature: 24.5, humidity: 58, pump: demoPump,
+      threshold: demoThreshold, lastEvent: demoPump ? "Soil dry, watering" : "Watering finished"
+    };
+  }
+
+  async function poll() {
+    try {
+      const d = await api("/api/status");
+      demo = false;
+      $("connection").innerHTML = `Live from <b>plant-controller</b>`;
+      $("demoNote").textContent = "";
+      render(d);
+    } catch {
+      demo = true;
+      $("connection").innerHTML = `Demo mode, <b>device not found</b>`;
+      $("demoNote").textContent = "Showing simulated data. Update DEVICE in index.html to your ESP32 address.";
+      render(simulate());
+    }
+  }
+
+  $("pump").addEventListener("change", async (e) => {
+    const on = e.target.checked;
+    if (demo) { demoPump = on; return; }
+    try { await api(`/api/pump?state=${on ? "on" : "off"}`, { method: "POST" }); }
+    catch { e.target.checked = !on; }
+  });
+
+  let thresholdTimer;
+  $("thresh").addEventListener("input", (e) => {
+    $("threshVal").textContent = e.target.value;
+    clearTimeout(thresholdTimer);
+    thresholdTimer = setTimeout(async () => {
+      if (demo) { demoThreshold = +e.target.value; return; }
+      try { await api(`/api/threshold?value=${e.target.value}`, { method: "POST" }); } catch {}
+    }, 300);
+  });
+
+  poll();
+  setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>
